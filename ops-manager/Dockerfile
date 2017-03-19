@@ -19,14 +19,20 @@ COPY config/mongod.conf /etc/mongod.conf
 ADD mongodb-mms.x86_64.rpm /tmp
 
 RUN rpm -ivh /tmp/mongodb-mms.x86_64.rpm
-
-#RUN cp /opt/mongodb/mms/bin/mongodb-mms /etc/init.d/
+RUN rm -f /tmp/mongodb-mms.x86_64.rpm
 
 RUN sed -i '/ABS_PATH="$( resolvepath $0 )"/c\SCRIPTPATH=/opt/mongodb/mms/bin/mongodb-mms'"\n"'ABS_PATH="$( resolvepath $SCRIPTPATH )"' /etc/init.d/mongodb-mms
 
 RUN systemctl enable mongodb-mms
 
 RUN mkdir -p /var/lib/mongo/backupDaemon && chown -R mongodb-mms:mongodb-mms /var/lib/mongo/backupDaemon/
+
+#Disable Transparent Huge Pages (THP)
+RUN yum install -y tuned; systemctl enable tuned 
+ADD config/disable-transparent-hugepages /etc/init.d/disable-transparent-hugepages
+RUN chmod 755 /etc/init.d/disable-transparent-hugepages; chkconfig --add disable-transparent-hugepages
+ADD config/tuned.conf /etc/tuned/no-thp/tuned.conf
+RUN tuned-adm profile no-thp
 
 EXPOSE 8080 27017
 
