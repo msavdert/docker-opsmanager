@@ -28,13 +28,16 @@ RUN systemctl enable mongodb-mms
 RUN mkdir -p /var/lib/mongo/backupDaemon && chown -R mongodb-mms:mongodb-mms /var/lib/mongo/backupDaemon/
 
 #Disable Transparent Huge Pages (THP)
-RUN yum install -y tuned; systemctl enable tuned 
+RUN yum install -y tuned openssl; systemctl enable tuned 
 ADD config/disable-transparent-hugepages /etc/init.d/disable-transparent-hugepages
 RUN chmod 755 /etc/init.d/disable-transparent-hugepages; chkconfig --add disable-transparent-hugepages
 ADD config/tuned.conf /etc/tuned/no-thp/tuned.conf
 RUN tuned-adm profile no-thp
 
-EXPOSE 8080 27017
+# Create mongodb.pem file for SSL certificate
+RUN cd /etc/ssl/; openssl req -newkey rsa:2048 -new -x509 -days 365 -nodes -out mongodb-cert.crt -keyout mongodb-cert.key -subj "/C=TR/ST=Turkey/L=Istanbul/O=.../OU=.../CN=.../emailAddress=..."; cat mongodb-cert.key mongodb-cert.crt > mongodb.pem
+
+EXPOSE 8080 8443 27017
 
 # Set the environment variables
 ENV HOME /root
