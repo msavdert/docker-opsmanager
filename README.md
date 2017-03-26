@@ -1,10 +1,10 @@
 ## docker-opsmanager
 
-1. cd ops-manager/
-2. wget https://downloads.mongodb.com/on-prem-mms/rpm/mongodb-mms-3.4.3.402-1.x86_64.rpm
-3. mv mongodb-mms-3.4.3.402-1.x86_64.rpm mongodb-mms.x86_64.rpm
-4. docker build --rm --no-cache -t melihsavdert/opsmanager:3.4.2 .
-5. docker network create my-mongo-cluster
+1. ```cd ops-manager/```
+2. ```wget https://downloads.mongodb.com/on-prem-mms/rpm/mongodb-mms-3.4.3.402-1.x86_64.rpm```
+3. ```mv mongodb-mms-3.4.3.402-1.x86_64.rpm mongodb-mms.x86_64.rpm```
+4. ```docker build --rm --no-cache -t melihsavdert/opsmanager:3.4.2 .```
+5. ```docker network create my-mongo-cluster```
 6. Let's start MongoDB Ops Manager container
 ```
 docker run --rm \ 
@@ -15,8 +15,8 @@ docker run --rm \
   -p 8080:8080 -p 8443:8443 -p 27017:27017 \
   -d melihsavdert/opsmanager:3.4.2
 ```
-6. cd ../agent/
-7. docker build --rm --no-cache -t melihsavdert/mongodb-agent:3.4.2 .
+6. ```cd ../agent/```
+7. ```docker build --rm --no-cache -t melihsavdert/mongodb-agent:3.4.2 .```
 8. http://<ip-address>:8080
 
 9. Retrieve the following parameters:
