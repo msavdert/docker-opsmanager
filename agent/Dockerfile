@@ -22,6 +22,22 @@ RUN cd /etc/ssl/; openssl req -newkey rsa:2048 -new -x509 -days 365 -nodes -out 
 
 #RUN mkdir -p /var/lib/mongo && chown mongod:mongod /var/lib/mongo
 
+#  SSH Shared Keys
+# Install SSH
+RUN yum install -y openssh openssh-server openssh-clients openssl-libs; cp /etc/ssh/sshd_config /etc/ssh/sshd_config.orig; systemctl enable sshd.service
+
+# Create SSH shared key directory
+RUN ["mkdir", "-p", "-m", "0700", "/root/.ssh/"]
+
+# Generate SSH shared keys
+RUN ssh-keygen -q -C '' -N '' -f /root/.ssh/id_rsa
+
+# Create the authorized_keys file
+RUN cat /root/.ssh/id_rsa.pub > /root/.ssh/authorized_keys
+
+# Change permissions of the authorized_keys file
+RUN ["chmod", "0640", "/root/.ssh/authorized_keys"]
+
 EXPOSE 27000-27020
 
 # Set the environment variables

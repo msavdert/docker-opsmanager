@@ -35,7 +35,29 @@ ADD config/tuned.conf /etc/tuned/no-thp/tuned.conf
 RUN tuned-adm profile no-thp
 
 # Create mongodb.pem file for SSL certificate
-RUN cd /etc/ssl/; openssl req -newkey rsa:2048 -new -x509 -days 365 -nodes -out mongodb-cert.crt -keyout mongodb-cert.key -subj "/C=TR/ST=Turkey/L=Istanbul/O=.../OU=.../CN=.../emailAddress=..."; cat mongodb-cert.key mongodb-cert.crt > mongodb.pem
+RUN cd /etc/ssl/; openssl req -newkey rsa:2048 -new -passout pass:"oracle" -x509 -days 365 -nodes -out mongodb-cert.crt -keyout mongodb-cert.key -subj "/C=TR/ST=Turkey/L=Istanbul/O=.../OU=.../CN=.../emailAddress=..."; cat mongodb-cert.key mongodb-cert.crt > mongodb.pem
+
+# Specify the settings the Automation Agent uses when communicating with Ops Manager using SSL
+RUN cd /etc/ssl/;openssl req -newkey rsa:2048 -new -passout pass:"oracle" -x509 -nodes -out mms-ssl.crt -keyout mms-ssl.key -subj "/C=TR/ST=Turkey/L=Istanbul/O=.../OU=.../CN=opsmanager/emailAddress=..."; cat mms-ssl.key mms-ssl.crt > mms-ssl-unified.crt
+
+#  SSH Shared Keys
+# Install SSH
+RUN yum install -y openssh openssh-server openssh-clients openssl-libs; cp /etc/ssh/sshd_config /etc/ssh/sshd_config.orig; systemctl enable sshd.service
+
+# Create SSH shared key directory
+RUN ["mkdir", "-p", "-m", "0700", "/root/.ssh/"]
+
+# Generate SSH shared keys
+RUN ssh-keygen -q -C '' -N '' -f /root/.ssh/id_rsa
+
+# Create the authorized_keys file
+RUN cat /root/.ssh/id_rsa.pub > /root/.ssh/authorized_keys
+
+# Change permissions of the authorized_keys file
+RUN ["chmod", "0640", "/root/.ssh/authorized_keys"]
+
+# ** WARNING: soft rlimits too low.
+echo 'mongod     soft    nproc     64000' > /etc/security/limits.d/90-nproc.conf
 
 EXPOSE 8080 8443 27017
 
