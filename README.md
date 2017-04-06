@@ -1,25 +1,29 @@
 ## docker-opsmanager
 
-1. ```cd ops-manager/```
-2. ```wget https://downloads.mongodb.com/on-prem-mms/rpm/mongodb-mms-3.4.3.402-1.x86_64.rpm```
-3. ```mv mongodb-mms-3.4.3.402-1.x86_64.rpm mongodb-mms.x86_64.rpm```
-4. ```docker build --rm --no-cache -t melihsavdert/opsmanager:3.4.2 .```
-5. ```docker network create my-mongo-cluster```
-6. Let's start MongoDB Ops Manager container
+1. ```git clone https://github.com/msavdert/docker-opsmanager```
+2. ```cd docker-opsmanager/ops-manager/```
+3. Download latest MongoDB Ops Manager 3.4.4 rpm package 
+
+```curl -O https://downloads.mongodb.com/on-prem-mms/rpm/mongodb-mms-3.4.4.408-1.x86_64.rpm```
+
+4. ```mv mongodb-mms-* mongodb-mms.x86_64.rpm```
+5. ```docker build --rm --no-cache -t melihsavdert/opsmanager:3.4.4 .```
+6. ```docker network create my-mongo-cluster```
+7. Let's start MongoDB Ops Manager container
 ```
-docker run --rm \ 
+docker run --rm \
   --privileged \
   --name opsmanager \
   --net my-mongo-cluster \
   -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
   -p 8080:8080 -p 8443:8443 -p 27017:27017 \
-  -d melihsavdert/opsmanager:3.4.2
+  -d melihsavdert/opsmanager:3.4.4
 ```
-6. ```cd ../agent/```
-7. ```docker build --rm --no-cache -t melihsavdert/mongodb-agent:3.4.2 .```
-8. http://<ip-address>:8080
+8. ```cd ../agent/```
+9. ```docker build --rm --no-cache -t melihsavdert/mongodb-agent:3.4.4 .```
+10. http://<ip-address>:8080
 
-9. Retrieve the following parameters:
+11. Retrieve the following parameters:
 
 - MMS_GROUP_ID
 - MMS_API_KEY
@@ -29,7 +33,7 @@ docker run --rm \
 
 We'll need these parameters to start the mms-agent containers.
 
-10. Let's create 3 nodes mongodb cluster
+12. Let's create 3 nodes mongodb cluster
 ```
 docker run --rm \
 	--privileged \
@@ -55,8 +59,8 @@ docker run --rm \
 	-v /sys/fs/cgroup:/sys/fs/cgroup:ro \
 	-d melihsavdert/mongodb-agent:3.4.2
 ```
-11. docker exec -it mongo1 bash
-12. Run the same things in all mongodb containers.
+13. docker exec -it mongo1 bash
+14. Run the same things in all mongodb containers.
 ```
 curl -OL http://opsmanager:8080/download/agent/automation/mongodb-mms-automation-agent-manager-latest.x86_64.rhel7.rpm
 rpm -U mongodb-mms-automation-agent-manager-latest.x86_64.rhel7.rpm
