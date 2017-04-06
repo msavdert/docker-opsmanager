@@ -7,7 +7,7 @@
 ```curl -O https://downloads.mongodb.com/on-prem-mms/rpm/mongodb-mms-3.4.4.408-1.x86_64.rpm```
 
 4. ```mv mongodb-mms-* mongodb-mms.x86_64.rpm```
-5. ```docker build --rm --no-cache -t melihsavdert/opsmanager:3.4.4 .```
+5. ```docker build --rm --no-cache -t melihsavdert/opsmanager:3.4 .```
 6. ```docker network create my-mongo-cluster```
 7. Let's start MongoDB Ops Manager container
 ```
@@ -17,10 +17,10 @@ docker run --rm \
   --net my-mongo-cluster \
   -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
   -p 8080:8080 -p 8443:8443 -p 27017:27017 \
-  -d melihsavdert/opsmanager:3.4.4
+  -d melihsavdert/opsmanager:3.4
 ```
 8. ```cd ../agent/```
-9. ```docker build --rm --no-cache -t melihsavdert/mongodb-agent:3.4.4 .```
+9. ```docker build --rm --no-cache -t melihsavdert/mongodb-agent:3.4 .```
 10. http://<ip-address>:8080
 
 11. Retrieve the following parameters:
@@ -41,7 +41,7 @@ docker run --rm \
 	--net my-mongo-cluster \
 	-p 27000:27000 \
 	-v /sys/fs/cgroup:/sys/fs/cgroup:ro \
-	-d melihsavdert/mongodb-agent:3.4.2
+	-d melihsavdert/mongodb-agent:3.4
 ```
 ```
 docker run --rm \
@@ -49,7 +49,7 @@ docker run --rm \
 	--name mongo2 \
 	--net my-mongo-cluster \
 	-v /sys/fs/cgroup:/sys/fs/cgroup:ro \
-	-d melihsavdert/mongodb-agent:3.4.2
+	-d melihsavdert/mongodb-agent:3.4
 ```
 ```
   docker run --rm \
@@ -57,7 +57,7 @@ docker run --rm \
 	--name mongo3 \
 	--net my-mongo-cluster \
 	-v /sys/fs/cgroup:/sys/fs/cgroup:ro \
-	-d melihsavdert/mongodb-agent:3.4.2
+	-d melihsavdert/mongodb-agent:3.4
 ```
 13. docker exec -it mongo1 bash
 14. Run the same things in all mongodb containers.
