@@ -21,7 +21,7 @@ docker run --rm \
 ```
 8. ```cd ../agent/```
 9. ```docker build --rm --no-cache -t melihsavdert/mongodb-agent:3.4 .```
-10. http://<ip-address>:8080
+10. http://ip-address:8080
 
 11. Retrieve the following parameters:
 
