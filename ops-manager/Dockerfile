@@ -4,11 +4,17 @@ MAINTAINER Melih Savdert <melihsavdert@gmail.com>
 
 RUN yum -y update && yum -y upgrade
 
+# Configure the yum package management system to install the latest stable release of MongoDB.
 COPY config/mongodb-enterprise.repo /etc/yum.repos.d/mongodb-enterprise.repo
 
-RUN yum install -y mongodb-enterprise wget net-tools; yum clean all;  systemctl enable mongod
+# Install MongoDB and enable MongoDB service.
+RUN yum install -y mongodb-enterprise wget sudo net-tools; yum clean all;  systemctl enable mongod
 
+#Create the data directory for the Ops Manager Application Database.
 RUN mkdir -p /var/lib/mongo/appdb && chown -R mongod:mongod /var/lib/mongo/
+
+#Create the backup directory.
+RUN mkdir -p /var/lib/mongo/backup && chown -R mongod:mongod /var/lib/mongo/
 
 # wget https://downloads.mongodb.com/on-prem-mms/rpm/mongodb-mms-3.4.3.402-1.x86_64.rpm
 # you may want to replace mongodb-mms-3.4.3.402-1.x86_64.rpm with the corresponding downloaded package name. When
@@ -18,13 +24,20 @@ RUN mkdir -p /var/lib/mongo/appdb && chown -R mongod:mongod /var/lib/mongo/
 COPY config/mongod.conf /etc/mongod.conf
 ADD mongodb-mms.x86_64.rpm /tmp
 
+# Install Ops Manager and remove installed rpm package
 RUN rpm -ivh /tmp/mongodb-mms.x86_64.rpm
 RUN rm -f /tmp/mongodb-mms.x86_64.rpm
 
+# Only if you installed to RHEL 7.1 or 7.2, replace symlinks with scripts.
 RUN sed -i '/ABS_PATH="$( resolvepath $0 )"/c\SCRIPTPATH=/opt/mongodb/mms/bin/mongodb-mms'"\n"'ABS_PATH="$( resolvepath $SCRIPTPATH )"' /etc/init.d/mongodb-mms
 
+# Enable Ops Manager service.
 RUN systemctl enable mongodb-mms
 
+# Start MongoDB for the Backup Database.
+RUN sudo -u mongod mongod --port 27018 --dbpath /var/lib/mongo/backup --logpath /data/backup/mongodb.log --wiredTigerCacheSizeGB 1 --fork
+
+# Create a directory to store the head databases.
 RUN mkdir -p /var/lib/mongo/backupDaemon && chown -R mongodb-mms:mongodb-mms /var/lib/mongo/backupDaemon/
 
 #Disable Transparent Huge Pages (THP)
