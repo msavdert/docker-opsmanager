@@ -2,6 +2,9 @@ FROM centos/systemd
 
 MAINTAINER Melih Savdert <melihsavdert@gmail.com>
 
+###################################################################################
+##  System Updates
+###################################################################################
 RUN yum -y update && yum -y upgrade
 
 # Configure the yum package management system to install the latest stable release of MongoDB.
@@ -34,26 +37,51 @@ RUN sed -i '/ABS_PATH="$( resolvepath $0 )"/c\SCRIPTPATH=/opt/mongodb/mms/bin/mo
 # Enable Ops Manager service.
 RUN systemctl enable mongodb-mms
 
-# Start MongoDB for the Backup Database.
-RUN sudo -u mongod mongod --port 27018 --dbpath /var/lib/mongo/backup --logpath /data/backup/mongodb.log --wiredTigerCacheSizeGB 1 --fork
+###################################################################################
+##  Running two MongoDB instances on one server
+###################################################################################
+# Make a copy of the MongoDB config file for the Backup Database
+RUN cp /etc/mongod.conf /etc/mongodbackup.conf
+
+# Edit Backup Database config file to have different paths and port
+RUN sed -i -- 's/27017/27018/g;s/appdb/backup/g;s/mongod.log/mongodbackup.log/g;s#mongodb/mongod.pid#mongodbackup/mongodbackup.pid#g' /etc/mongodbackup.conf
+
+# Copy the mongod binary for the Backup Database
+RUN cp /usr/bin/mongod /usr/bin/mongod2
+
+# Copy the init.d script and make some changes
+RUN cp /usr/lib/systemd/system/mongod.service /usr/lib/systemd/system/mongodbackup.service
+
+# Edit the mongodbackup.service script
+RUN sed -i -- 's/mongodb/mongodbackup/g;s/mongod.pid/mongodbackup.pid/g;s/mongod.conf/mongodbackup.conf/g;s#/usr/bin/mongod#/usr/bin/mongod2#g' /usr/lib/systemd/system/mongodbackup.service
+
+# Enable Backup Database service
+RUN systemctl enable mongodbackup
 
 # Create a directory to store the head databases.
 RUN mkdir -p /var/lib/mongo/backupDaemon && chown -R mongodb-mms:mongodb-mms /var/lib/mongo/backupDaemon/
 
-#Disable Transparent Huge Pages (THP)
+###################################################################################
+##  Disable Transparent Huge Pages (THP)
+###################################################################################
 RUN yum install -y tuned openssl; systemctl enable tuned 
 ADD config/disable-transparent-hugepages /etc/init.d/disable-transparent-hugepages
 RUN chmod 755 /etc/init.d/disable-transparent-hugepages; chkconfig --add disable-transparent-hugepages
 ADD config/tuned.conf /etc/tuned/no-thp/tuned.conf
 RUN tuned-adm profile no-thp
 
+###################################################################################
+##  Create SLL certificates
+###################################################################################
 # Create mongodb.pem file for SSL certificate
 RUN cd /etc/ssl/; openssl req -newkey rsa:2048 -new -passout pass:"oracle" -x509 -days 365 -nodes -out mongodb-cert.crt -keyout mongodb-cert.key -subj "/C=TR/ST=Turkey/L=Istanbul/O=.../OU=.../CN=.../emailAddress=..."; cat mongodb-cert.key mongodb-cert.crt > mongodb.pem
 
 # Specify the settings the Automation Agent uses when communicating with Ops Manager using SSL
 RUN cd /etc/ssl/;openssl req -newkey rsa:2048 -new -passout pass:"oracle" -x509 -nodes -out mms-ssl.crt -keyout mms-ssl.key -subj "/C=TR/ST=Turkey/L=Istanbul/O=.../OU=.../CN=opsmanager/emailAddress=..."; cat mms-ssl.key mms-ssl.crt > mms-ssl-unified.crt
 
-#  SSH Shared Keys
+###################################################################################
+##  SSH Shared Keys
+###################################################################################
 # Install SSH
 RUN yum install -y openssh openssh-server openssh-clients openssl-libs; cp /etc/ssh/sshd_config /etc/ssh/sshd_config.orig; systemctl enable sshd.service
 
@@ -72,7 +100,7 @@ RUN ["chmod", "0640", "/root/.ssh/authorized_keys"]
 # ** WARNING: soft rlimits too low.
 RUN echo 'mongod     soft    nproc     64000' > /etc/security/limits.d/90-nproc.conf
 
-EXPOSE 8080 8443 27017
+EXPOSE 8080 8443 27017 27018
 
 # Set the environment variables
 ENV HOME /root
