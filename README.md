@@ -16,24 +16,25 @@ docker run --rm \
   --name opsmanager \
   --net my-mongo-cluster \
   -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
-  -p 8080:8080 -p 8443:8443 -p 27017:27017 \
+  -p 8080:8080 -p 8443:8443 -p 27017:27017 -p 27018:27018 \
   -d melihsavdert/opsmanager:3.4
 ```
-8. ```cd ../agent/```
-9. ```docker build --rm --no-cache -t melihsavdert/mongodb-agent:3.4 .```
-10. http://ip-address:8080
+8. ```docker exec -it opsmanager /bin/bash -c /tmp/authentication.sh```
+9. ```cd ../agent/```
+10. ```docker build --rm --no-cache -t melihsavdert/mongodb-agent:3.4 .```
+11. http://ip-address:8080
 
-11. Retrieve the following parameters:
+12. Retrieve the following parameters:
 
 - MMS_GROUP_ID
 - MMS_API_KEY
 - BASE_URL
 
-![alt tag](https://cloud.githubusercontent.com/assets/5485061/6651746/4be248a8-ca53-11e4-8637-b0391302ac6c.png)
+![alt tag](http://image.prntscr.com/image/6f70c2c38b6e4a078897e32623310b54.png)
 
 We'll need these parameters to start the mms-agent containers.
 
-12. Let's create 3 nodes mongodb cluster
+13. Let's create 3 nodes mongodb cluster
 ```
 docker run --rm \
 	--privileged \
@@ -59,16 +60,16 @@ docker run --rm \
 	-v /sys/fs/cgroup:/sys/fs/cgroup:ro \
 	-d melihsavdert/mongodb-agent:3.4
 ```
-13. docker exec -it mongo1 bash
-14. Run the same things in all mongodb containers.
+14. docker exec -it mongo1 bash
+15. Run the same things in all mongodb containers.
 ```
 curl -OL http://opsmanager:8080/download/agent/automation/mongodb-mms-automation-agent-manager-latest.x86_64.rhel7.rpm
 rpm -U mongodb-mms-automation-agent-manager-latest.x86_64.rhel7.rpm
 rm -f mongodb-mms-automation-agent-manager-latest.x86_64.rhel7.rpm
 mkdir -p /var/lib/mongo && chown mongod:mongod /var/lib/mongo
 
-mmsGroupId=58d28530027439018527210c
-mmsApiKey=3a29715be6cc8517def9052cf0209050
+mmsGroupId=58ec9737027439015ff36c44
+mmsApiKey=46bb18f7bc70514a6602137ca3c74932
 mmsBaseUrl=http://opsmanager:8080
 
 sed -i "s/.*mmsGroupId=.*/mmsGroupId=$mmsGroupId/g;s/.*mmsApiKey=.*/mmsApiKey=$mmsApiKey/g;s#.*mmsBaseUrl=.*#mmsBaseUrl=$mmsBaseUrl#g"  /etc/mongodb-mms/automation-agent.config
