@@ -46,6 +46,9 @@ RUN cp /etc/mongod.conf /etc/mongodbackup.conf
 # Edit Backup Database config file to have different paths and port
 RUN sed -i -- 's/27017/27018/g;s/appdb/backup/g;s/mongod.log/mongodbackup.log/g;s#mongodb/mongod.pid#mongodbackup/mongodbackup.pid#g' /etc/mongodbackup.conf
 
+# Edit Backup Database config file to change storage engine mmapv1
+RUN sed -i -- 's/.*mmapv1.*/  engine: mmapv1/' /etc/mongodbackup.conf
+
 # Copy the mongod binary for the Backup Database
 RUN cp /usr/bin/mongod /usr/bin/mongod2
 
@@ -108,4 +111,6 @@ ENV HOME /root
 # Working directory
 WORKDIR /root
 
+ADD config/authentication.sh /tmp
+RUN ["chmod", "+x", "/tmp/authentication.sh"]
 CMD ["/usr/sbin/init"]
