@@ -19,12 +19,11 @@ docker run --rm \
   -p 8080:8080 -p 8443:8443 -p 27017:27017 -p 27018:27018 \
   -d melihsavdert/opsmanager:3.4
 ```
-8. ```docker exec -it opsmanager /bin/bash -c /tmp/authentication.sh```
-9. ```cd ../agent/```
-10. ```docker build --rm --no-cache -t melihsavdert/mongodb-agent:3.4 .```
-11. http://ip-address:8080
+8. ```cd ../agent/```
+9. ```docker build --rm --no-cache -t melihsavdert/mongodb-agent:3.4 .```
+10. http://ip-address:8080
 
-12. Retrieve the following parameters:
+11. Retrieve the following parameters:
 
 - MMS_GROUP_ID
 - MMS_API_KEY
@@ -34,7 +33,7 @@ docker run --rm \
 
 We'll need these parameters to start the mms-agent containers.
 
-13. Let's create 3 nodes mongodb cluster
+12. Let's create 3 nodes mongodb cluster
 ```
 docker run --rm \
 	--privileged \
@@ -60,8 +59,8 @@ docker run --rm \
 	-v /sys/fs/cgroup:/sys/fs/cgroup:ro \
 	-d melihsavdert/mongodb-agent:3.4
 ```
-14. docker exec -it mongo1 bash
-15. Run the same things in all mongodb containers.
+13. docker exec -it mongo1 bash
+14. Run the same things in all mongodb containers.
 ```
 curl -OL http://opsmanager:8080/download/agent/automation/mongodb-mms-automation-agent-manager-latest.x86_64.rhel7.rpm
 rpm -U mongodb-mms-automation-agent-manager-latest.x86_64.rhel7.rpm
