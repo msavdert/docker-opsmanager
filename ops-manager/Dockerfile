@@ -102,6 +102,7 @@ RUN ["chmod", "0640", "/root/.ssh/authorized_keys"]
 
 # ** WARNING: soft rlimits too low.
 RUN echo 'mongod     soft    nproc     64000' > /etc/security/limits.d/90-nproc.conf
+RUN echo 'mongod2     soft    nproc     64000' >> /etc/security/limits.d/90-nproc.conf
 
 EXPOSE 8080 8443 27017 27018
 
